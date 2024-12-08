@@ -13,7 +13,7 @@ namespace RestService.Controllers
 {
     public class SecurityController : ApiController, ISecurityService
     {
-        public const string AdminRole = "1"; // Solo el rol "1" (Administrador) tiene acceso
+        public const string AdminRole = "1"; 
 
         // Validación del Token y Rol
         private bool IsAdmin(HttpRequestMessage request)
