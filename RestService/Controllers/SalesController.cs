@@ -14,118 +14,374 @@ namespace RestService.Controllers
 {
     public class SalesController : ApiController, IService
     {
-        // Metodos para Categorias
+        public const string AdminRole = "1";
+        public const string UserRole = "2";
+        public const string ViewerRole = "3";
+
+        // Métodos para Categorías
+
         [HttpPost]
         public Categories CreateCategory(Categories newCategory)
         {
-            // 1. Extraer el token de la solicitud
-            var token = Request.Headers.Authorization?.Parameter;
-            if (string.IsNullOrEmpty(token))
+            try
             {
-                return null; // Si no hay token, devolver una respuesta no autorizada
-            }
+                // 1. Extraer el token de la solicitud
+                var token = Request.Headers.Authorization?.Parameter;
+                if (string.IsNullOrEmpty(token))
+                {
+                    return null; // Token no proporcionado
+                }
 
-            // 2. Validar el token
-            var principal = JwtService.ValidateToken(token);
-            if (principal == null)
+                // 2. Validar el token
+                var principal = JwtService.ValidateToken(token);
+                if (principal == null)
+                {
+                    return null; // Token inválido
+                }
+
+                // 3. Verificar el rol del usuario
+                var roleClaim = principal.Claims.FirstOrDefault(c => c.Type == "rol");
+                if (roleClaim == null)
+                {
+                    return null; // Rol no encontrado
+                }
+
+                var userRole = roleClaim.Value;
+
+                if (userRole != AdminRole && userRole != UserRole)
+                {
+                    return null; // Solo Admin y User pueden crear
+                }
+
+                // Lógica para crear la categoría
+                var categoryLogic = new CategoryLogic();
+                var category = categoryLogic.Create(newCategory);
+                return category; // Retorna la categoría creada
+            }
+            catch (Exception)
             {
-                return null; // Si el token no es válido, devolver una respuesta no autorizada
+                return null; // Si hay un error, devolver null
             }
-
-            foreach (var claim in principal?.Claims)
-            {
-                Console.WriteLine($"Claim Type: {claim.Type}, Value: {claim.Value}");
-            }
-
-
-            // 3. Verificar si el rol del usuario es 1 (Administrador)
-            var roleClaim = principal?.Claims.FirstOrDefault(c => c.Type == "rol");
-            Console.WriteLine(roleClaim);
-            if (roleClaim == null || roleClaim.Value != "1") // Suponiendo que 1 es el rol de administrador
-            {
-                return null; // Si el rol no es 1, devolver una respuesta no autorizada
-            }
-
-            // Si todo es válido, proceder con la lógica de creación de la categoría
-            var categoryLogic = new CategoryLogic();
-            var category = categoryLogic.Create(newCategory);
-            return category;
         }
 
         [HttpGet]
         public List<Categories> RetrieveAllCategories()
         {
-            var categoryLogic = new CategoryLogic();
-            var categories = categoryLogic.RetrieveAllCategories();
-            return categories;
+            try
+            {
+                // Validación de rol
+                var token = Request.Headers.Authorization?.Parameter;
+                if (string.IsNullOrEmpty(token))
+                {
+                    return null; // Token no proporcionado
+                }
+
+                var principal = JwtService.ValidateToken(token);
+                if (principal == null)
+                {
+                    return null; // Token inválido
+                }
+
+                var roleClaim = principal.Claims.FirstOrDefault(c => c.Type == "rol");
+                if (roleClaim.Value == ViewerRole || roleClaim.Value == AdminRole || roleClaim.Value == UserRole)
+                {
+                    var categoryLogic = new CategoryLogic();
+                    var categories = categoryLogic.RetrieveAllCategories();
+                    return categories;
+                }
+                else
+                {
+                    return null; // Si no tiene permiso, retornar null
+                }
+            }
+            catch (Exception)
+            {
+                return null; // En caso de error, retorna null
+            }
         }
 
         [HttpGet]
         [Route("api/Sales/RetrieveCategoryID/{categoryID}")]
         public Categories RetrieveCategoryID(int categoryID)
         {
-            var categoryLogic = new CategoryLogic();
-            var categories = categoryLogic.RetrieveByID(categoryID);
-            return categories;
+            try
+            {
+                // Validación de rol
+                var token = Request.Headers.Authorization?.Parameter;
+                if (string.IsNullOrEmpty(token))
+                {
+                    return null; // Token no proporcionado
+                }
+
+                var principal = JwtService.ValidateToken(token);
+                if (principal == null)
+                {
+                    return null; // Token inválido
+                }
+
+                var roleClaim = principal.Claims.FirstOrDefault(c => c.Type == "rol");
+                if (roleClaim.Value == ViewerRole || roleClaim.Value == AdminRole || roleClaim.Value == UserRole)
+                {
+                    var categoryLogic = new CategoryLogic();
+                    var category = categoryLogic.RetrieveByID(categoryID);
+                    return category; // Solo GET permitido para ViewerRole
+                }
+                else
+                {
+                    return null; // Si no tiene permisos, retornar null
+                }
+            }
+            catch (Exception)
+            {
+                return null; // En caso de error, retorna null
+            }
         }
 
         [HttpPost]
         public bool UpdateCategory(Categories categoryToUpdate)
         {
-            var categoryLogic = new CategoryLogic();
-            var result = categoryLogic.Update(categoryToUpdate);
-            return result;
+            try
+            {
+                // Validación de rol
+                var token = Request.Headers.Authorization?.Parameter;
+                if (string.IsNullOrEmpty(token))
+                {
+                    return false; // Token no proporcionado
+                }
+
+                var principal = JwtService.ValidateToken(token);
+                if (principal == null)
+                {
+                    return false; // Token inválido
+                }
+
+                var roleClaim = principal.Claims.FirstOrDefault(c => c.Type == "rol");
+                if (roleClaim == null || (roleClaim.Value != AdminRole && roleClaim.Value != UserRole))
+                {
+                    return false; // Solo Admin y User pueden actualizar
+                }
+
+                var categoryLogic = new CategoryLogic();
+                var result = categoryLogic.Update(categoryToUpdate);
+                return result; // Retorna el resultado de la actualización
+            }
+            catch (Exception)
+            {
+                return false; // En caso de error, retorna false
+            }
         }
 
         [HttpDelete]
         [Route("api/Sales/DeleteCategory/{categoryID}")]
         public bool DeleteCategory(int categoryID)
         {
-            var categoryLogic = new CategoryLogic();
-            var result = categoryLogic.Delete(categoryID);
-            return result;
+            try
+            {
+                // Validación de rol
+                var token = Request.Headers.Authorization?.Parameter;
+                if (string.IsNullOrEmpty(token))
+                {
+                    return false; // Token no proporcionado
+                }
+
+                var principal = JwtService.ValidateToken(token);
+                if (principal == null)
+                {
+                    return false; // Token inválido
+                }
+
+                var roleClaim = principal.Claims.FirstOrDefault(c => c.Type == "rol");
+                if (roleClaim == null || (roleClaim.Value != AdminRole && roleClaim.Value != UserRole))
+                {
+                    return false; // Solo Admin y User pueden eliminar
+                }
+
+                var categoryLogic = new CategoryLogic();
+                var result = categoryLogic.Delete(categoryID);
+                return result; // Retorna el resultado de la eliminación
+            }
+            catch (Exception)
+            {
+                return false; // En caso de error, retorna false
+            }
         }
 
-        // Metodos para Productos
+        // Métodos para Productos
 
         [HttpPost]
         public Products CreateProduct(Products newProduct)
         {
-            var productLogic = new ProductLogic();
-            var product = productLogic.Create(newProduct);
-            return product;
+            try
+            {
+                // Validación de rol
+                var token = Request.Headers.Authorization?.Parameter;
+                if (string.IsNullOrEmpty(token))
+                {
+                    return null; // Token no proporcionado
+                }
+
+                var principal = JwtService.ValidateToken(token);
+                if (principal == null)
+                {
+                    return null; // Token inválido
+                }
+
+                var roleClaim = principal.Claims.FirstOrDefault(c => c.Type == "rol");
+                if (roleClaim == null || (roleClaim.Value != AdminRole && roleClaim.Value != UserRole))
+                {
+                    return null; // Solo Admin y User pueden crear productos
+                }
+
+                var productLogic = new ProductLogic();
+                var product = productLogic.Create(newProduct);
+                return product; // Retorna el producto creado
+            }
+            catch (Exception)
+            {
+                return null; // Si hay un error, devolver null
+            }
         }
 
+        // Metodo para obtener todos los productos
         [HttpGet]
         public List<Products> RetrieveAllProducts()
         {
-            var productLogic = new ProductLogic();
-            var products = productLogic.RetrieveAllProducts();
-            return products;
+            // 1. Extraer el token de la solicitud
+            var token = Request.Headers.Authorization?.Parameter;
+            if (string.IsNullOrEmpty(token))
+            {
+                return null; // Si no hay token, devolver null
+            }
+
+            // 2. Validar el token
+            var principal = JwtService.ValidateToken(token);
+            if (principal == null)
+            {
+                return null; // Si el token no es válido, devolver null
+            }
+
+            // 3. Verificar el rol del usuario
+            var roleClaim = principal.Claims.FirstOrDefault(c => c.Type == "rol");
+            if (roleClaim == null || (roleClaim.Value != AdminRole && roleClaim.Value != UserRole && roleClaim.Value != ViewerRole))
+            {
+                return null; // Si el rol no es válido o no tiene permisos para realizar la acción, devolver null
+            }
+
+            try
+            {
+                var productLogic = new ProductLogic();
+                var products = productLogic.RetrieveAllProducts();
+                return products; // Devuelve todos los productos
+            }
+            catch (Exception)
+            {
+                return null; // En caso de error, retorna null
+            }
         }
 
+        // Metodo para obtener un producto por ID
         [HttpGet]
         public Products RetrieveProductID(int ID)
         {
-            var productLogic = new ProductLogic();
-            var result = productLogic.RetrieveByID(ID);
-            return result;
+            // 1. Extraer el token de la solicitud
+            var token = Request.Headers.Authorization?.Parameter;
+            if (string.IsNullOrEmpty(token))
+            {
+                return null; // Si no hay token, devolver null
+            }
+
+            // 2. Validar el token
+            var principal = JwtService.ValidateToken(token);
+            if (principal == null)
+            {
+                return null; // Si el token no es válido, devolver null
+            }
+
+            // 3. Verificar el rol del usuario
+            var roleClaim = principal.Claims.FirstOrDefault(c => c.Type == "rol");
+            if (roleClaim == null || (roleClaim.Value != AdminRole && roleClaim.Value != UserRole && roleClaim.Value != ViewerRole))
+            {
+                return null; // Si el rol no es válido o no tiene permisos para realizar la acción, devolver null
+            }
+
+            try
+            {
+                var productLogic = new ProductLogic();
+                var result = productLogic.RetrieveByID(ID);
+                return result; // Devuelve el producto por ID
+            }
+            catch (Exception)
+            {
+                return null; // En caso de error, retorna null
+            }
         }
 
         [HttpPost]
         public bool UpdateProduct(Products productToUpdate)
         {
-            var productLogic = new ProductLogic();
-            var result = productLogic.Update(productToUpdate);
-            return result;
+            try
+            {
+                // Validación de rol
+                var token = Request.Headers.Authorization?.Parameter;
+                if (string.IsNullOrEmpty(token))
+                {
+                    return false; // Token no proporcionado
+                }
+
+                var principal = JwtService.ValidateToken(token);
+                if (principal == null)
+                {
+                    return false; // Token inválido
+                }
+
+                var roleClaim = principal.Claims.FirstOrDefault(c => c.Type == "rol");
+                if (roleClaim == null || (roleClaim.Value != AdminRole && roleClaim.Value != UserRole))
+                {
+                    return false; // Solo Admin y User pueden actualizar productos
+                }
+
+                var productLogic = new ProductLogic();
+                var result = productLogic.Update(productToUpdate);
+                return result; // Retorna el resultado de la actualización
+            }
+            catch (Exception)
+            {
+                return false; // En caso de error, retorna false
+            }
         }
 
         [HttpDelete]
         public bool DeleteProduct(int ID)
         {
-            var productLogic = new ProductLogic();
-            var result = productLogic.Delete(ID);
-            return result;
+            try
+            {
+                // Validación de rol
+                var token = Request.Headers.Authorization?.Parameter;
+                if (string.IsNullOrEmpty(token))
+                {
+                    return false; // Token no proporcionado
+                }
+
+                var principal = JwtService.ValidateToken(token);
+                if (principal == null)
+                {
+                    return false; // Token inválido
+                }
+
+                var roleClaim = principal.Claims.FirstOrDefault(c => c.Type == "rol");
+                if (roleClaim == null || (roleClaim.Value != AdminRole && roleClaim.Value != UserRole))
+                {
+                    return false; // Solo Admin y User pueden eliminar productos
+                }
+
+                var productLogic = new ProductLogic();
+                var result = productLogic.Delete(ID);
+                return result; // Retorna el resultado de la eliminación
+            }
+            catch (Exception)
+            {
+                return false; // En caso de error, retorna false
+            }
         }
 
         [HttpGet]
