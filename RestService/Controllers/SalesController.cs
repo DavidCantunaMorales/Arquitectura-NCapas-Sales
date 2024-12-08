@@ -7,6 +7,8 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using RestService.Models;
+using SecurityLayer;
 
 namespace RestService.Controllers
 {
@@ -16,6 +18,35 @@ namespace RestService.Controllers
         [HttpPost]
         public Categories CreateCategory(Categories newCategory)
         {
+            // 1. Extraer el token de la solicitud
+            var token = Request.Headers.Authorization?.Parameter;
+            if (string.IsNullOrEmpty(token))
+            {
+                return null; // Si no hay token, devolver una respuesta no autorizada
+            }
+
+            // 2. Validar el token
+            var principal = JwtService.ValidateToken(token);
+            if (principal == null)
+            {
+                return null; // Si el token no es válido, devolver una respuesta no autorizada
+            }
+
+            foreach (var claim in principal?.Claims)
+            {
+                Console.WriteLine($"Claim Type: {claim.Type}, Value: {claim.Value}");
+            }
+
+
+            // 3. Verificar si el rol del usuario es 1 (Administrador)
+            var roleClaim = principal?.Claims.FirstOrDefault(c => c.Type == "rol");
+            Console.WriteLine(roleClaim);
+            if (roleClaim == null || roleClaim.Value != "1") // Suponiendo que 1 es el rol de administrador
+            {
+                return null; // Si el rol no es 1, devolver una respuesta no autorizada
+            }
+
+            // Si todo es válido, proceder con la lógica de creación de la categoría
             var categoryLogic = new CategoryLogic();
             var category = categoryLogic.Create(newCategory);
             return category;

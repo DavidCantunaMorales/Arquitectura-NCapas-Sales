@@ -12,19 +12,19 @@ namespace Entities
     using System;
     using System.Collections.Generic;
     
-    public partial class Categories
+    public partial class Roles
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public Categories()
+        public Roles()
         {
-            this.Products = new HashSet<Products>();
+            this.Usuarios = new HashSet<Usuarios>();
         }
     
-        public int CategoryID { get; set; }
-        public string CategoryName { get; set; }
+        public int RoleID { get; set; }
+        public string RoleName { get; set; }
         public string Description { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Products> Products { get; set; }
+        public virtual ICollection<Usuarios> Usuarios { get; set; }
     }
 }

@@ -12,14 +12,15 @@ namespace Entities
     using System;
     using System.Collections.Generic;
     
-    public partial class Products
+    public partial class Auditoria
     {
-        public int ProductID { get; set; }
-        public string ProductName { get; set; }
-        public int CategoryID { get; set; }
-        public decimal UnitPrice { get; set; }
-        public int UnitsInStock { get; set; }
+        public int AuditID { get; set; }
+        public int UserID { get; set; }
+        public string Action { get; set; }
+        public string TableName { get; set; }
+        public Nullable<int> RecordID { get; set; }
+        public System.DateTime ActionDate { get; set; }
     
-        public virtual Categories Categories { get; set; }
+        public virtual Usuarios Usuarios { get; set; }
     }
 }

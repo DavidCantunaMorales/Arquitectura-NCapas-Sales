@@ -50,6 +50,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Entities\Auditoria.cs">
+      <DependentUpon>SalesModel.tt</DependentUpon>
+    </None>
+    <None Include="..\Entities\Categories.cs">
+      <DependentUpon>SalesModel.tt</DependentUpon>
+    </None>
+    <None Include="..\Entities\Products.cs">
+      <DependentUpon>SalesModel.tt</DependentUpon>
+    </None>
+    <None Include="..\Entities\Roles.cs">
+      <DependentUpon>SalesModel.tt</DependentUpon>
+    </None>
+    <None Include="..\Entities\Usuarios.cs">
+      <DependentUpon>SalesModel.tt</DependentUpon>
+    </None>
     <Compile Include="EFRepository.cs" />
     <Compile Include="IRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

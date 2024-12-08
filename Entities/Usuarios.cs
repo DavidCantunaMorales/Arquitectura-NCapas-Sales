@@ -12,19 +12,23 @@ namespace Entities
     using System;
     using System.Collections.Generic;
     
-    public partial class Categories
+    public partial class Usuarios
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public Categories()
+        public Usuarios()
         {
-            this.Products = new HashSet<Products>();
+            this.Auditoria = new HashSet<Auditoria>();
         }
     
-        public int CategoryID { get; set; }
-        public string CategoryName { get; set; }
-        public string Description { get; set; }
+        public int UserID { get; set; }
+        public int RoleID { get; set; }
+        public string UserName { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
+        public bool IsActive { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Products> Products { get; set; }
+        public virtual ICollection<Auditoria> Auditoria { get; set; }
+        public virtual Roles Roles { get; set; }
     }
 }
